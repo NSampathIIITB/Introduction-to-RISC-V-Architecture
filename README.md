@@ -57,6 +57,7 @@ source .bashrc
 </details>
 
 ## Day-1
+
 <details>
 <summary> Introduction to RISC-V ISA </summary>
 </br>
