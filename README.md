@@ -192,6 +192,11 @@ we can use these commands in spike while debugging
 ![Screenshot from 2023-08-19 19-14-55](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/57b9edb6-e6ea-4049-94c9-5169ff2d907c)
 
   </details>
+<details>
+ <summary> Integer number Representation </summary>
+ <br>
+ 
+</details>  
 
   
 
