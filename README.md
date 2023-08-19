@@ -529,5 +529,5 @@ Input hex file to sent through verilog code:
 - https://www.vsdiat.com
 - https://en.wikipedia.org/wiki/Toolchain
 - https://en.wikipedia.org/wiki/GNU_toolchain
-- https://github.com/riscv/riscv-gnu-toolchainPruthvi Parate
+- https://github.com/riscv/riscv-gnu-toolchain
 
