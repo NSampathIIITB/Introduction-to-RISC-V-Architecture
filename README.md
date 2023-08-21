@@ -1,3 +1,4 @@
+
 # RISC-V-Architecture
 
 This github repository summarizes the progress made in the ASIC class about RISC-V Architecture . Quick links:
@@ -751,22 +752,262 @@ Identifiers and Types
 
 ![image](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/1ee6edfb-d4eb-419c-8e4f-aba42e296a79)
 
+```
+\m5_TLV_version 1d: tl-x.org
+\m5
+   
+   // =================================================
+   // Welcome!  New to Makerchip? Try the "Learn" menu.
+   // =================================================
+   
+   //use(m5-1.0)   /// uncomment to use M5 macro library.
+\SV
+   // Macro providing required top-level module definition, random
+   // stimulus support, and Verilator config.
+   m5_makerchip_module   // (Expanded in Nav-TLV pane.)
+\TLV
+   
+   |calc
+      @1
+         $reset = *reset;
+   
+   
+         $cnt = $reset ? 0 : >>1$cnt + 1'b1;
+         $val1[31:0] = $reset ? 0 : >>1$out[31:0] + 1'b0;
+         $val2[31:0] = $rand2[3:0];
+   
+         $sum[31:0] = $val1[31:0] + $val2[31:0];
+         $diff[31:0] = $val1[31:0] - $val2[31:0];
+         $prod[31:0] = $val1[31:0] * $val2[31:0];
+         $quot[31:0] = $val1[31:0] / $val2[31:0];
+   
+         $out[31:0] = ($op[1:0] == 2'b00) ? $sum[31:0] : ($op[1:0] == 2'b01) ? $diff[31:0] : ($op[1:0] == 2'b10) ? $prod[31:0] : $quot[31:0];
+   
+   
+   // Assert these to end simulation (before Makerchip cycle limit).
+   *passed = *cyc_cnt > 40;
+   *failed = 1'b0;
+\SV
+   endmodule
+```
+
 ![Screenshot from 2023-08-21 01-19-58](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/e49a9f93-4b71-4be6-96e2-28e81590fcc7)
 
+**Lab: 2-Cycle calculator**
 
+![image](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/3d77e7b3-cde8-4a89-836b-51328afff0af)
 
-
-
-
-
-
-
+```
+\m5_TLV_version 1d: tl-x.org
+\m5
+   
+   // =================================================
+   // Welcome!  New to Makerchip? Try the "Learn" menu.
+   // =================================================
+   
+   //use(m5-1.0)   /// uncomment to use M5 macro library.
+\SV
+   // Macro providing required top-level module definition, random
+   // stimulus support, and Verilator config.
+   m5_makerchip_module   // (Expanded in Nav-TLV pane.)
+\TLV
+   
+   |calc
+      @1
+         $reset = *reset;
+   
+   
+         $valid = $reset ? 0 : >>1$valid + 1'b1;
+         $val1[31:0] = >>2$out[31:0];
+         $val2[31:0] = $rand2[3:0];
+   
+         $sum[31:0] = $val1[31:0] + $val2[31:0];
+         $diff[31:0] = $val1[31:0] - $val2[31:0];
+         $prod[31:0] = $val1[31:0] * $val2[31:0];
+         $quot[31:0] = $val1[31:0] / $val2[31:0];
+      @2
+                
+         $out[31:0] = ($reset + ! $valid) ? 32'b0:(($op[1:0] == 2'b00) ? $sum[31:0] : ($op[1:0] == 2'b01) ? $diff[31:0] : ($op[1:0] == 2'b10) ? $prod[31:0] : $quot[31:0]);
+   
+   
+   // Assert these to end simulation (before Makerchip cycle limit).
+   *passed = *cyc_cnt > 40;
+   *failed = 1'b0;
+\SV
+   endmodule
+```
+![Screenshot from 2023-08-21 16-51-22](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/0f7dafc1-d178-4f77-b357-01502e897315)
 
 </details>
 
 <details>
 <summary> Validity </summary>	
+<br>
 	
+**Validity** is another feature in TL verilog which is asserted if a particular transactions in a pipeline is valid or true. A new scope, called “when” scope is introduced for this and it is denoted as **?$valid**. This new scope has many advantages - easier design, cleaner debug, better error checking and automated clock gating.
+<br>	
+	
+Validity provides :
+1. Easier debug
+2. Cleaner design
+3. Better error checking
+4. Automated Clock gating
+</br>
+
+**Clock gating:**
+<br>
+
+Clock gating is a technique used in digital circuit design to save power by selectively controlling the clock signal to different parts of a circuit. In digital systems, the clock signal is used to synchronize the operations of various components within the circuit. However, not all parts of a circuit need to be active and consuming power all the time. Clock gating helps reduce power consumption by disabling the clock signal to certain circuit elements when they are not needed.
+
+The basic idea behind clock gating is to insert logic gates (typically AND or OR gates) between the clock source and the destination registers or logic elements. These gates act as switches that allow the clock signal to pass through only when a certain condition is met. If the condition is not satisfied, the clock signal is effectively "gated" or blocked from reaching the destination, preventing unnecessary clock cycles and power consumption.
+
+Clock gating can be implemented at various levels of a design, ranging from individual registers to larger functional blocks or subsystems. It is particularly effective in designs where certain parts of the circuit are idle for significant periods of time.
+
+Benefits of clock gating include:
+
+1. **Power Savings**: By preventing clock signals from reaching inactive components, clock gating reduces dynamic power consumption, which is the power consumed when transistors switch states.
+
+2. **Heat Reduction**: Lower power consumption leads to reduced heat generation, which is especially important in modern high-performance and mobile devices where heat dissipation is a concern.
+
+3. **Extended Battery Life**: In battery-powered devices, clock gating contributes to longer battery life by conserving power.
+
+4. **Improved Performance**: In some cases, clock gating can also help improve performance by allowing certain parts of the circuit to operate at higher frequencies since overall power consumption is reduced.
+
+However, clock gating isn't always straightforward. If implemented incorrectly, it can introduce additional delay into the circuit, impacting performance. Additionally, managing clock domains and ensuring proper synchronization between clock-gated and non-clock-gated regions can be complex.
+
+In summary, clock gating is a power-saving technique in digital design that selectively disables clock signals to inactive parts of a circuit, leading to reduced power consumption and associated benefits.
+
+- Clock gating avoids toggling clock signals.
+- TL-Verilog can produce fine-grained gating (or enables).
+
+**Lab: Distance accumulator**
+```
+\m4_TLV_version 1d: tl-x.org
+\SV
+   `include "sqrt32.v";
+   m4_makerchip_module   // (Expanded in Nav-TLV pane.)
+\TLV
+   |calc
+      @1
+         $reset = *reset;
+      ?$valid
+         @1
+            $aa_sq[31:0] = $aa[3:0] * $aa;
+            $bb_sq[31:0] = $bb[3:0] * $bb;
+         @2
+            $cc_sq[31:0] = $aa_sq + $bb_sq;
+         @3
+            $cc[31:0] = sqrt($cc_sq);
+      
+      @4
+         $tot_dist[63:0] = 
+             $reset ? '0 :
+             $valid ? >>1$tot_dist + $cc :
+                      >>1$tot_dist;
+     
+         
+!  *passed = *cyc_cnt > 16'd30;        
+   
+  
+   
+   
+\SV
+   endmodule
+```
+![Screenshot from 2023-08-21 18-00-15](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/3b8d2592-079e-4363-bc1e-f6a38cd3e45b)
+
+**Lab: 2-Cycle Calculator with Validity**
+
+```
+\m5_TLV_version 1d: tl-x.org
+\m5
+   
+   // =================================================
+   // Welcome!  New to Makerchip? Try the "Learn" menu.
+   // =================================================
+   
+   //use(m5-1.0)   /// uncomment to use M5 macro library.
+\SV
+   // Macro providing required top-level module definition, random
+   // stimulus support, and Verilator config.
+   m5_makerchip_module   // (Expanded in Nav-TLV pane.)
+\TLV
+   |calc
+      @1
+         $reset = *reset;
+         $valid = $reset ? 0 : >>1$valid + 1'b1;
+         $valid_or_reset = $valid || $reset;
+      ?$valid_or_reset   
+         @1
+            $val1[31:0] = >>2$out[31:0];
+            $val2[31:0] = $rand2[3:0];
+
+
+
+            $sum[31:0] = $val1[31:0] + $val2[31:0];
+            $diff[31:0] = $val1[31:0] - $val2[31:0];
+            $prod[31:0] = $val1[31:0] * $val2[31:0];
+            $quot[31:0] = $val1[31:0] / $val2[31:0];
+
+         @2
+            $out[31:0] = $reset ? 32'b0 : (($op[1:0] == 2'b00) ? $sum[31:0] : ($op[1:0] == 2'b01) ? $diff[31:0] : ($op[1:0] == 2'b10) ? $prod[31:0] : $quot[31:0]);
+
+
+   // Assert these to end simulation (before Makerchip cycle limit).
+   *passed = *cyc_cnt > 40;
+   *failed = 1'b0;
+\SV
+endmodule
+```
+![Screenshot from 2023-08-21 18-49-32](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/132e185b-4762-4098-8f5e-10a4cb13fa4c)
+
+**Lab: Calculator with Single value memory**
+
+```
+\m5_TLV_version 1d: tl-x.org
+\m5
+   
+   // =================================================
+   // Welcome!  New to Makerchip? Try the "Learn" menu.
+   // =================================================
+   
+   //use(m5-1.0)   /// uncomment to use M5 macro library.
+\SV
+   // Macro providing required top-level module definition, random
+   // stimulus support, and Verilator config.
+   m5_makerchip_module   // (Expanded in Nav-TLV pane.)
+\TLV
+   |calc
+      @1
+         $reset = *reset;
+         $valid = $reset ? 0 : >>1$valid + 1'b1;
+         $valid_or_reset = $valid || $reset;
+      ?$valid_or_reset   
+         @1
+            $val1[31:0] = >>2$out[31:0];
+            $val2[31:0] = $rand2[3:0];
+
+
+
+            $sum[31:0] = $val1[31:0] + $val2[31:0];
+            $diff[31:0] = $val1[31:0] - $val2[31:0];
+            $prod[31:0] = $val1[31:0] * $val2[31:0];
+            $quot[31:0] = $val1[31:0] / $val2[31:0];
+
+         @2
+            $out[31:0] = $reset ? 32'b0 : (($op[2:0] == 3'b000) ? $sum[31:0] : ($op[2:0] == 3'b001) ? $diff[31:0] : ($op[2:0] == 3'b010) ? $prod[31:0] : ($op[2:0] == 3'b011) ? $quot[31:0] : ($op[2:0] == 3'b100) ? $recall : >>2$out);
+            $recall[31:0] = >>2$mem[31:0];
+            $mem[31:0] = $reset ? 32'b0 : (($op[2:0] == 3'b101) ? >>2$out : '0);
+
+   // Assert these to end simulation (before Makerchip cycle limit).
+   *passed = *cyc_cnt > 40;
+\SV
+endmodule
+```
+![Screenshot from 2023-08-21 19-31-19](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/e0ee5263-5ba6-4380-8cbf-a06fd57248e7)
+
+  
+
 </details>
 
 <details>
