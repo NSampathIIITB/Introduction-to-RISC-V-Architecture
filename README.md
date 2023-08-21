@@ -914,7 +914,7 @@ In summary, clock gating is a power-saving technique in digital design that sele
 \SV
    endmodule
 ```
-![Screenshot from 2023-08-21 18-00-15](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/3b8d2592-079e-4363-bc1e-f6a38cd3e45b)
+![Screenshot from 2023-08-21 18-00-15](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/3b8d2592-079e-4363-bc1e-f6a38cd3e45b)</br>
 
 **Lab: 2-Cycle Calculator with Validity**
 
@@ -959,7 +959,7 @@ In summary, clock gating is a power-saving technique in digital design that sele
 \SV
 endmodule
 ```
-![Screenshot from 2023-08-21 18-49-32](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/132e185b-4762-4098-8f5e-10a4cb13fa4c)
+![Screenshot from 2023-08-21 18-49-32](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/132e185b-4762-4098-8f5e-10a4cb13fa4c)</br>
 
 **Lab: Calculator with Single value memory**
 
@@ -1004,19 +1004,90 @@ endmodule
 \SV
 endmodule
 ```
-![Screenshot from 2023-08-21 19-31-19](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/e0ee5263-5ba6-4380-8cbf-a06fd57248e7)
-
-  
+![Screenshot from 2023-08-21 20-09-23](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/9e321784-312a-44cc-ae9f-9f274d3584b0)
 
 </details>
 
 <details>
 <summary> Wrap-up </summary>	
+<br>	
+	
+**Lab: pythagarous theroem using hierarchy**
 
- 
+![image](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/28cdb06f-a55b-458d-accb-7350f655db2a)
+```
+\m4_TLV_version 1d: tl-x.org
+\SV
+   `include "sqrt32.v";
+   m4_makerchip_module
+\TLV
+
+   |calc
+      
+      // DUT
+      /coord[1:0]
+         @1
+            $sq[9:0] = $value[3:0] ** 2;
+      @2
+         $cc_sq[10:0] = /coord[0]$sq + /coord[1]$sq;
+      @3
+         $cc[4:0] = sqrt($cc_sq);
+
+
+      // Print
+      @3
+         \SV_plus
+            always_ff @(posedge clk) begin
+               \$display("sqrt((\%2d ^ 2) + (\%2d ^ 2)) = %2d", /coord[0]$value, /coord[1]$value, $cc);
+            end
+
+\SV
+endmodule
+```
+![Screenshot from 2023-08-21 20-49-18](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/7477d529-101e-48a2-8632-83efef431b4e)
+
 </details>
 
 ## Day-4
+
+<details> 
+<summary> Introduction to simple RISC-V Micro architecture </summary>
+<br>
+The block diagram of a basic RISC-V microarchitecture is as shown in figure below. Now, using the Makerchip platform the implementation of the RISC-V microarchitecture or core is done. For starting the implementation a starter code present [here](https://github.com/stevehoover/RISC-V_MYTH_Workshop) is used. The starter code consist of -
+
+- A simple RISC-V assembler.
+- An instruction memory containing the sum 1..9 test program.
+- Commented code for register file and memory.
+- Visualization.
+
+  **RISC-V Block Diagram**
+  
+  ![image](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/ae01f90c-3cbe-4210-8f67-05f81cec06c9)
+
+  Here's a brief explanation of each component:
+
+    **Instruction Memory**: This is where the CPU fetches instructions from memory. The program counter (PC) points to the address of the next instruction to be fetched.
+
+    **Instruction Fetch/Decode**: In this stage, fetched instructions are decoded to identify their type and operands.
+
+    **Register File**: This is a set of registers where data is temporarily stored. Instructions can read from and write to these registers.
+
+    **ALU/Execution**: The Arithmetic Logic Unit (ALU) performs arithmetic and logical operations on data from the register file. This stage also includes execution units for other types of    instructions, like memory access and branching.
+
+    **Data Memory**: This is where data is read from or written to memory. It interacts with the ALU and the register file.
+
+    **Writeback/Commit**: After executing an instruction, the result is written back to the register file if necessary. This stage also handles updating the program counter based on the outcome of branching instructions
+  
+  **Program Counter**: (PC) also known as the Instruction Pointer (IP) in some architectures, is a fundamental component in the design of a computer's central processing unit (CPU). It plays a crucial role in the execution of instructions and the control flow of a program. The Program Counter keeps track of the memory address of the next instruction to be fetched and executed.
+
+
+</details>
+
+<details>
+<summary> Fetch and Decode </summary>	
+<br>
+	 
+</details>
 
 
 
