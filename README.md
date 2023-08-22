@@ -1432,12 +1432,74 @@ These are the main instruction types in many RISC architectures, including RISC-
 
 ![Screenshot from 2023-08-22 12-45-08](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/6e032dda-c9d4-492e-8a78-bf33bb672c27)
 
+## Lab-4: Instruction Immediate Decode Logic For RV-ISBUJ 
+
+![Screenshot from 2023-08-22 18-38-53](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/67924b5f-c273-4255-9c38-423d0811634f)
+
+```
+//immediate instr
+         $imm[31:0] = $is_i_instr ? { {21{$instr[31]}}, $instr[30:20] } :
+                      $is_s_instr ? { {21{$instr[31]}}, $instr[30:25], $instr[11:8], $instr[7] } :
+                      $is_b_instr ? { {19{$instr[31]}}, {2{$instr[7]}}, $instr[30:25], $instr[11:8], 0 } :
+                      $is_u_instr ? { $instr[31], $instr[30:20], $instr[19:12], 0 } :
+                         $is_j_instr ? { {21{$instr[31]}}, $instr[19:12], {2{$instr[20]}}, $instr[30:25], $instr[24:21], 0 } :
+                         32'b0;
+```
+
+![Screenshot from 2023-08-22 19-13-43](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/683d2f5c-e686-42ab-ad05-68a2fe1cd31c)
+
+![Screenshot from 2023-08-22 12-45-08](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/cfcaa06f-93b0-4704-a153-f5c316c8bd53)
+
+## Lab-5: Decode other Fields of Instructions For RV-ISBUJ 
+
+![Screenshot from 2023-08-22 19-19-50](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/08278573-23fd-44b1-8cb3-0d555981efb0)
+
+```
+//extracting other instruction fields
+         $rs2 = $instr[24:20];
+         $rs1 = $instr[19:15];
+         $rd = $instr[11:7];
+         $opcode = $instr[6:0];
+         $funct3 = $instr[12:14];
+         $funct7 = $instr[25:30];
+
+```
+![Screenshot from 2023-08-22 19-29-01](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/57d793f4-eeba-4813-84af-9b4bd79161f2)
+
+![Screenshot from 2023-08-22 19-31-24](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/cab61f80-fb61-4970-abdb-1952d9981b27)
+
+## Lab-6: To Decode Instruction Field Based on Instr Type RV-ISBUJ 
+
+![Screenshot from 2023-08-22 19-33-38](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/22b83cc7-bc9e-4ac7-944a-29a79e4fbd06)
+
+```
+//instruction field code
+         
+         $rs2_valid = $is_r_instr || $is_s_instr || $is_b_instr;
+         ?$rs2_valid
+            $rs2[4:0] = $instr[24:20];
+         $rs1_valid = $is_r_instr || $is_s_instr || $is_b_instr || $is_i_instr;
+         ?$rs1_valid
+            $rs1[4:0] = $instr[19:15];
+         $rd_valid = $is_r_instr || $is_i_instr || $is_u_instr || $is_j_instr;
+         ?$rd_valid
+            $rd[4:0] = $instr[11:7];
+         $funct3_valid = $is_r_instr || $is_s_instr || $is_b_instr || $is_i_instr;
+         ?$funct3_valid
+            $funct3[2:0] = $instr[14:12];
+         $funct7_valid = $is_r_instr; 
+         ?$funct7_valid
+            $funct7[5:0] = $instr[25:31];
+         $opcode_valid = $is_r_instr || $is_i_instr || $is_u_instr || $is_j_instr || $is_s_instr || $is_b_instr;
+         ?$opcode_valid
+            $opcode[4:0] = $instr[11:7];
 
 
+```
 
+![Screenshot from 2023-08-22 19-52-35](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/21471a83-b240-4164-a8be-743905f1ebca)
 
-
-
+![Screenshot from 2023-08-22 19-53-29](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/862bf92a-10c7-4d69-9cce-dd455abbaaab)
 
 
 
