@@ -1492,7 +1492,7 @@ These are the main instruction types in many RISC architectures, including RISC-
             $funct7[5:0] = $instr[25:31];
          $opcode_valid = $is_r_instr || $is_i_instr || $is_u_instr || $is_j_instr || $is_s_instr || $is_b_instr;
          ?$opcode_valid
-            $opcode[4:0] = $instr[11:7];
+            $opcode[6:0] = $instr[6:0];
 
 
 ```
@@ -1501,25 +1501,181 @@ These are the main instruction types in many RISC architectures, including RISC-
 
 ![Screenshot from 2023-08-22 19-53-29](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/862bf92a-10c7-4d69-9cce-dd455abbaaab)
 
+## Lab-7:  To Decode Individual Instruction 
+
+![Screenshot from 2023-08-22 20-38-35](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/6c526f61-e288-4e91-be8e-1b0286ef76e3)
+
+```
+$dec_bits[10:0] = {$funct7[5],$funct3,$opcode};
+         $is_beq = $dec_bits ==? 11'bx_000_1100011;
+         $is_bne = $dec_bits ==? 11'bx_001_1100011;          
+         $is_blt = $dec_bits ==? 11'bx_100_1100011;
+         $is_bge = $dec_bits ==? 11'bx_101_1100011;
+         $is_bltu = $dec_bits ==? 11'bx_110_1100011;
+         $is_bgeu = $dec_bits ==? 11'bx_111_1100011;
+         $is_addi = $dec_bits ==? 11'bx_000_0010011;
+         $is_add = $dec_bits ==? 11'b0_000_0110011;
+         
+         //until instrs are implemented
+         //quiet down the warnings
+         `BOGUS_USE($is_bne $is_blt $is_bge $is_bltu $is_bgeu $is_addi $is_add)
 
 
+```
+![Screenshot from 2023-08-22 21-19-31](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/6a939814-d79d-4e85-aa0b-b448eaf951a3)
 
-
-
-
-
-
-
+![Screenshot from 2023-08-22 21-20-54](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/28a28bb8-c0e5-4fbf-9e98-1b23aba50057)
   
 </details>
 
+<details>
+<summary> RISC-V control logic </summary>	
+
+## Lab-1: Register File Read Part1 (USE UPDATED SHELL CODE) 
+
+![Screenshot from 2023-08-22 21-42-42](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/05825529-9a99-45be-aae5-d59673e0cfd9)
+
+The next task is to 'read from' and 'write into' the registers. In this operation, 2 read and write operation can be carried out simulatenously. The two `src1_value`/`src2_value` takes input from the two read register `rf_read_data1`/ `rf_read_data2` and pass it on to the ALU unit. At present, `ADDI` and `ADD` is execute whose result is obtained in register `rf_write_data`. The figure below shows the input and output registers.
+
+```
+//register file read
+         $rf_wr_en = 1'b0;
+         $rf_wr_index[4:0] = 5'b0;
+         $rf_wr_data[31:0] = 32'b0;
+         $rf_rd_en1 = $rs1_valid;
+         $rf_rd_index1[4:0] = $rs1;
+         $rf_rd_en2 = $rs2_valid;
+         $rf_rd_index2[4:0] = $rs2;
+```
+![Screenshot from 2023-08-22 22-02-50](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/aeac2218-741a-4836-b025-03a85bd3d1f2)
+
+![Screenshot from 2023-08-22 22-03-32](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/01f7d2d2-98a8-46d9-89c8-e712099c57f3)
+
+## Lab-2: Register File Read Part-2
+
+![Screenshot from 2023-08-22 22-12-01](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/5434e11a-4337-4f7f-a2fe-9e079fd8d312)
+
+```
+$rf_wr_en = 1'b0;
+         $rf_wr_index[4:0] = 5'b0;
+         $rf_wr_data[31:0] = 32'b0;
+         $rf_rd_en1 = $rs1_valid;
+         $rf_rd_index1[4:0] = $rs1;
+         $rf_rd_en2 = $rs2_valid;
+         $rf_rd_index2[4:0] = $rs2;
+         $src1_value[31:0] = >>1$rf_rd_data1;
+         $src2_value[31:0] = >>1$rf_rd_data2;
+```
+![Screenshot from 2023-08-22 22-12-48](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/3e206f41-f615-474c-b429-879576bc03a3)
+
+![Screenshot from 2023-08-22 22-13-43](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/8969b6a5-85cf-4122-b335-cfa4d6a8a50d)
+
+## Lab-3: ALU Operations For add/addi 
+
+![Screenshot from 2023-08-22 22-18-09](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/4c43d26c-31c5-4e4d-b541-62035794ee09)
+
+```
+//alu add/addi
+         $result[31:0] = 
+             $is_addi ? $src1_value + $imm :
+             $is_add ? $src1_value + $src2_value :
+                       32'bx;
+```
+![Screenshot from 2023-08-22 22-27-29](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/28a9b03f-8371-4f5c-89e2-9bb1cd9ac921)
+
+
+![Screenshot from 2023-08-22 22-28-15](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/452c591e-acae-48f9-bd6d-cbadef57e404)
+
+## Lab-4: Register File Write 
+
+![Screenshot from 2023-08-22 22-46-08](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/1ec5863c-9ba3-4f03-bdc1-66f8145701ff)
+
+```
+$rf_wr_en = $rd_valid && $rd != 5'b0;
+         $rf_wr_index[4:0] = $rd;
+         $rf_wr_data[31:0] = $result;
+```
+![Screenshot from 2023-08-22 22-55-11](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/bc2cdd35-420a-474a-a7be-f726436543e6)
+
+![Screenshot from 2023-08-22 22-47-55](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/b1da2b85-81a3-4a66-8748-e104231dbb7d)
 
 
 
+**ARRAYS**
+
+In RISC-V, arrays are typically implemented using a combination of registers and memory. Arrays can be stored in memory, where each element is stored at a specific memory address. The processor can use load and store instructions to access these elements. For example, you might load an element from an array in memory into a register, perform operations on it, and then store the result back into memory.
+
+Alternatively, arrays can also be partially stored in registers. If an array is small enough to fit into the available registers, the elements can be loaded into registers for faster processing. This approach can improve performance for certain operations, as register access is generally faster than memory access.
+
+In both cases, whether an array is stored in memory or registers, the RISC-V architecture provides instructions to perform operations on array elements, such as loading, storing, and arithmetic operations.
+
+In summary, the register file in RISC-V architecture consists of a set of registers that are used for temporary storage and fast access to data, while arrays are collections of elements that can be stored either in memory or registers and are manipulated using load, store, and computation instructions.
+
+
+## Lab-5: Implementing Branch Instructions 
+
+![Screenshot from 2023-08-22 23-41-36](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/86b5725e-5e08-422f-bdbe-a8491949abf4)
+
+```
+$taken_branch = $is_beq ? ($src1_value == $src2_value):
+                         $is_bne ? ($src1_value != $src2_value):
+                         $is_blt ? (($src1_value < $src2_value) ^ ($src1_value[31] != $src2_value[31])):
+                         $is_bge ? (($src1_value >= $src2_value) ^ ($src1_value[31] != $src2_value[31])):
+                         $is_bltu ? ($src1_value < $src2_value):
+                         $is_bgeu ? ($src1_value >= $src2_value):
+                                    1'b0;
+         `BOGUS_USE($taken_branch)
+
+```
+![Screenshot from 2023-08-22 23-51-46](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/fd02ddfe-7904-4fba-80b2-ba4039afa9ff)
+
+
+![Screenshot from 2023-08-22 23-52-32](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/3f7e5c2c-117c-463a-ac1a-237f6ce16733)
+
+## Lab-6: Completing Branch Instruction Implementation 
+
+![image](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/817aef4d-28fc-41bb-bbde-41137b03fc95)
+
+
+```
+	   //BRANCH INSTRUCTIONS 1
+         $taken_branch = $is_beq ? ($src1_value == $src2_value):
+                         $is_bne ? ($src1_value != $src2_value):
+                         $is_blt ? (($src1_value < $src2_value) ^ ($src1_value[31] != $src2_value[31])):
+                         $is_bge ? (($src1_value >= $src2_value) ^ ($src1_value[31] != $src2_value[31])):
+                         $is_bltu ? ($src1_value < $src2_value):
+                         $is_bgeu ? ($src1_value >= $src2_value):
+                                    1'b0;
+         `BOGUS_USE($taken_branch)
+         
+         //BRANCH INSTRUCTIONS 2
+         $br_target_pc[31:0] = $pc +$imm;
+
+```
+![Screenshot from 2023-08-23 00-33-04](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/e4b6da33-6e27-49ba-ac70-bd41c03caa1d)
+
+
+## Lab-7: To Create Simple Testbench
+
+```
+*passed = |cpu/xreg[10]>>5$value == (1+2+3+4+5+6+7+8+9) ;
+```
+
+![Screenshot from 2023-08-23 00-35-38](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/9e3cb95f-36de-4f78-a5c5-215129eb75bd)
+
+</details>
 
 ## Day-5
 
-
+<details>
+	<summary> Pipelining the CPU </summary>
+</details>
+<details>
+	<summary> Solutions to Pipeline Hazards </summary>
+</details>
+<details>
+	<summary> Load/Store Instructions and Completing RISC-V CPU </summary>
+</details>
 
 
 
