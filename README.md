@@ -1086,7 +1086,369 @@ The block diagram of a basic RISC-V microarchitecture is as shown in figure belo
 <details>
 <summary> Fetch and Decode </summary>	
 <br>
-	 
+Designing of processor is based on three core steps fetch, decode and execute :
+
+Here we gonna design RISC-V Cpu Core for which block diagram is given below :
+
+
+![image](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/ba691dab-0cdc-40bb-a0e5-bb30e717090b)
+
+
+## Template For Running Viz:
+
+```
+\m4_TLV_version 1d: tl-x.org
+\SV
+   // This code can be found in: https://github.com/stevehoover/RISC-V_MYTH_Workshop
+   
+   m4_include_lib(['https://raw.githubusercontent.com/BalaDhinesh/RISC-V_MYTH_Workshop/master/tlv_lib/risc-v_shell_lib.tlv'])
+
+\SV
+   m4_makerchip_module   // (Expanded in Nav-TLV pane.)
+\TLV
+
+   // /====================\
+   // | Sum 1 to 9 Program |
+   // \====================/
+   //
+   // Program for MYTH Workshop to test RV32I
+   // Add 1,2,3,...,9 (in that order).
+   //
+   // Regs:
+   //  r10 (a0): In: 0, Out: final sum
+   //  r12 (a2): 10
+   //  r13 (a3): 1..10
+   //  r14 (a4): Sum
+   // 
+   // External to function:
+   m4_asm(ADD, r10, r0, r0)             // Initialize r10 (a0) to 0.
+   // Function:
+   m4_asm(ADD, r14, r10, r0)            // Initialize sum register a4 with 0x0
+   m4_asm(ADDI, r12, r10, 1010)         // Store count of 10 in register a2.
+   m4_asm(ADD, r13, r10, r0)            // Initialize intermediate sum register a3 with 0
+   // Loop:
+   m4_asm(ADD, r14, r13, r14)           // Incremental addition
+   m4_asm(ADDI, r13, r13, 1)            // Increment intermediate register by 1
+   m4_asm(BLT, r13, r12, 1111111111000) // If a3 is less than a2, branch to label named <loop>
+   m4_asm(ADD, r10, r14, r0)            // Store final result to register a0 so that it can be read by main program
+   
+   // Optional:
+   // m4_asm(JAL, r7, 00000000000000000000) // Done. Jump to itself (infinite loop). (Up to 20-bit signed immediate plus implicit 0 bit (unlike JALR) provides byte address; last immediate bit should also be 0)
+   m4_define_hier(['M4_IMEM'], M4_NUM_INSTRS)
+
+   |cpu
+      @0
+         $reset = *reset;
+
+
+
+      // YOUR CODE HERE
+      // ...
+
+      // Note: Because of the magic we are using for visualisation, if visualisation is enabled below,
+      //       be sure to avoid having unassigned signals (which you might be using for random inputs)
+      //       other than those specifically expected in the labs. You'll get strange errors for these.
+
+   
+   // Assert these to end simulation (before Makerchip cycle limit).
+   *passed = *cyc_cnt > 40;
+   *failed = 1'b0;
+   
+   // Macro instantiations for:
+   //  o instruction memory
+   //  o register file
+   //  o data memory
+   //  o CPU visualization
+   |cpu
+      //m4+imem(@1)    // Args: (read stage)
+      //m4+rf(@1, @1)  // Args: (read stage, write stage) - if equal, no register bypass is required
+      //m4+dmem(@4)    // Args: (read/write stage)
+      //m4+myth_fpga(@0)  // Uncomment to run on fpga
+
+   //m4+cpu_viz(@4)    // For visualisation, argument should be at least equal to the last stage of CPU logic. @4 would work for all labs.
+\SV
+   endmodule
+```
+## Lab-1 : PC Logic
+
+The program counter (PC) is a fundamental component of a computer's central processing unit (CPU) that keeps track of the address of the next instruction to be fetched and executed. The PC logic manages the updating of the program counter as instructions are fetched and executed in a program.
+
+**Incrementing the PC:**
+After an instruction is fetched, the PC needs to be updated to point to the next instruction's address. The most common approach is to increment the PC by the size of the instruction. In many architectures, instructions are of a fixed size, such as 32 bits, so the PC is incremented by 4 after each instruction fetch.
+
+![Screenshot from 2023-08-22 11-30-33](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/05e146ca-7698-42e1-a1c4-45f2f54b96b1)
+
+```
+|cpu
+      @0
+         $reset = *reset;
+         
+         $pc[31:0] = >>1$reset ? '0 : >>1$pc + 32'd4;
+```
+
+![Screenshot from 2023-08-22 11-44-25](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/ad91d393-13ae-41f0-9a4b-7aa645b898de)
+
+## Lab-2 : Instruction Fetch Logic
+
+![Screenshot from 2023-08-22 11-56-31](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/53839638-0fff-46c5-a4a3-5721f74c1322)
+
+
+|cpu
+      @0
+         $reset = *reset;
+         
+         $pc[31:0] = >>1$reset ? '0 : >>1$pc + 32'd4; 
+
+      // Note: Because of the magic we are using for visualisation, if visualisation is enabled below,
+      //       be sure to avoid having unassigned signals (which you might be using for random inputs)
+      //       other than those specifically expected in the labs. You'll get strange errors for these.
+
+   
+   // Assert these to end simulation (before Makerchip cycle limit).
+   *passed = *cyc_cnt > 40;
+   *failed = 1'b0;
+   
+   // Macro instantiations for:
+   //  o instruction memory
+   //  o register file
+   //  o data memory
+   //  o CPU visualization
+   |cpu
+      m4+imem(@1)    // Args: (read stage)
+      //m4+rf(@1, @1)  // Args: (read stage, write stage) - if equal, no register bypass is required
+      //m4+dmem(@4)    // Args: (read/write stage)
+      //m4+myth_fpga(@0)  // Uncomment to run on fpga
+
+   m4+cpu_viz(@4)    // For visualisation, argument should be at least equal to the last stage of CPU logic. @4 would work for all labs.
+\SV
+   endmodule
+
+
+![Screenshot from 2023-08-22 12-01-27](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/06a306b9-2d78-4727-bcda-c909e930f396)
+
+In the log we will observe a warning
+```
+WARNING(1) (UNUSED-SIG): File 'top.tlv' Line 61 (char 16)
+			-> instantiated: '/raw.githubusercontent.com/BalaDhinesh/RISCVMYTHWorkshop/master/tlvlib/riscvshelllib.tlv':32, which
+	resulted in 'top.m4':74(ch16):
+	+---------------vvvvvvvvvvvvvvvvvvv-------
+	>               $imem_rd_data[31:0] = /imem[$imem_rd_addr]$instr;
+	+---------------^^^^^^^^^^^^^^^^^^^-------
+	Signal |cpu$imem_rd_data is assigned but never used.
+```
+![Screenshot from 2023-08-22 12-08-37](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/3f2d842c-4977-4da8-849d-0b6a32d3ce97)
+
+```
+|cpu
+      @0
+         $reset = *reset;
+         //pc
+         $pc[31:0] = >>1$reset ? 32'b0 : >>1$pc + 32'd4;
+      @1   
+         $imem_rd_addr[M4_IMEM_INDEX_CNT-1:0] = $pc[M4_IMEM_INDEX_CNT+1:2];
+         $imem_rd_en = !$reset;   
+         $instr[31:0] = $imem_rd_data[31:0];
+         
+      ?$imem_rd_en
+         @1
+            $imem_rd_data[31:0] = /imem[$imem_rd_addr]$instr;   
+
+      // Note: Because of the magic we are using for visualisation, if visualisation is enabled below,
+      //       be sure to avoid having unassigned signals (which you might be using for random inputs)
+      //       other than those specifically expected in the labs. You'll get strange errors for these.
+
+   
+   // Assert these to end simulation (before Makerchip cycle limit).
+   *passed = *cyc_cnt > 40;
+   *failed = 1'b0;
+   
+   // Macro instantiations for:
+   //  o instruction memory
+   //  o register file
+   //  o data memory
+   //  o CPU visualization
+   |cpu
+      m4+imem(@1)    // Args: (read stage)
+      //m4+rf(@1, @1)  // Args: (read stage, write stage) - if equal, no register bypass is required
+      //m4+dmem(@4)    // Args: (read/write stage)
+      //m4+myth_fpga(@0)  // Uncomment to run on fpga
+
+   m4+cpu_viz(@4)    // For visualisation, argument should be at least equal to the last stage of CPU logic. @4 would work for all labs.
+\SV
+  endmodule
+```
+![Screenshot from 2023-08-22 12-40-46](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/9770d4f1-327d-41c8-ba6c-7349ca34bbb0)
+
+![Screenshot from 2023-08-22 12-45-08](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/7db28fe6-a04f-4de8-b11a-097a558d027d)
+
+## Lab-3: RISC-V Instruction Types IRSBJU Decode Logic
+
+In computer architecture, instruction decoding is the process of interpreting the bits of an instruction fetched from memory to determine the operation that the instruction is supposed to perform. Different instruction types have distinct formats and meanings, and the decoding process varies accordingly. Below, I'll provide a general overview of common instruction types and their decoding:
+
+1. **R-Type (Register-Type) Instructions:**
+   R-Type instructions operate on data stored in registers. They usually involve arithmetic, logical, or shift operations.
+   
+   Format: 
+   ```
+   opcode | rd | funct3 | rs1 | rs2 | funct7
+   ```
+   
+   - `opcode`: Operation code.
+   - `rd`: Destination register.
+   - `funct3`: Function code specifying the operation.
+   - `rs1`: Source register 1.
+   - `rs2`: Source register 2.
+   - `funct7`: Additional function code (used for certain instructions).
+
+2. **I-Type (Immediate-Type) Instructions:**
+   I-Type instructions perform operations with an immediate value (constant) and a register.
+   
+   Format:
+   ```
+   opcode | rd | funct3 | rs1 | imm[11:0]
+   ```
+   
+   - `opcode`: Operation code.
+   - `rd`: Destination register.
+   - `funct3`: Function code specifying the operation.
+   - `rs1`: Source register.
+   - `imm[11:0]`: 12-bit immediate value.
+
+3. **S-Type (Store-Type) Instructions:**
+   S-Type instructions store data from a register into memory.
+   
+   Format:
+   ```
+   opcode | imm[11:5] | rs2 | rs1 | funct3 | imm[4:0]
+   ```
+   
+   - `opcode`: Operation code.
+   - `imm[11:5]`: Upper immediate bits.
+   - `rs2`: Source register 2.
+   - `rs1`: Source register 1.
+   - `funct3`: Function code specifying the operation.
+   - `imm[4:0]`: Lower immediate bits.
+
+4. **B-Type (Branch-Type) Instructions:**
+   B-Type instructions perform conditional branches based on comparisons.
+   
+   Format:
+   ```
+   opcode | imm[12] | imm[10:5] | rs2 | rs1 | funct3 | imm[4:1] | imm[11] | imm[0]
+   ```
+   
+   - `opcode`: Operation code.
+   - `imm[12]`: Upper immediate bit.
+   - `imm[10:5]`: Immediate bits for offset calculation.
+   - `rs2`: Source register 2.
+   - `rs1`: Source register 1.
+   - `funct3`: Function code specifying the operation.
+   - `imm[4:1]`: Immediate bits for offset calculation.
+   - `imm[11]`: Immediate bit.
+   - `imm[0]`: Immediate bit.
+
+5. **U-Type (Upper Immediate-Type) Instructions:**
+   U-Type instructions load a constant into a register.
+   
+   Format:
+   ```
+   opcode | rd | imm[31:12]
+   ```
+   
+   - `opcode`: Operation code.
+   - `rd`: Destination register.
+   - `imm[31:12]`: 20-bit immediate value.
+
+6. **J-Type (Jump-Type) Instructions:**
+   J-Type instructions perform unconditional jumps.
+   
+   Format:
+   ```
+   opcode | rd | imm[20] | imm[10:1] | imm[11] | imm[19:12]
+   ```
+   
+   - `opcode`: Operation code.
+   - `rd`: Destination register.
+   - `imm[20]`: Immediate bit.
+   - `imm[10:1]`: Immediate bits for offset calculation.
+   - `imm[11]`: Immediate bit.
+   - `imm[19:12]`: Immediate bits for offset calculation.
+
+These are the main instruction types in many RISC architectures, including RISC-V. When an instruction is fetched from memory, the instruction decoder uses the opcode and other fields to identify the instruction type and the operands involved. Based on the instruction type, the CPU can then execute the appropriate operation using the decoded values. Keep in mind that this is a high-level overview, and the specifics might vary based on the architecture and implementation details.
+
+![image](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/16968e0d-9de9-47fa-b3f3-13c68a057cfc)
+
+![Screenshot from 2023-08-22 12-58-36](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/467b035c-92ec-42ce-8362-fa16369d5164)
+
+```
+|cpu
+      @0
+         $reset = *reset;
+      @1
+         $is_i_instr = $instr[6:2] ==? 5'b0000x ||
+                       $instr[6:2] ==? 5'b001x0 ||
+                       $instr[6:2] ==? 5'b11001 ;
+                       
+         $is_r_instr = $instr[6:2] ==? 5'b01011 ||
+                       $instr[6:2] ==? 5'b011x0 ||
+                       $instr[6:2] ==? 5'b10100 ; 
+                       
+         $is_s_instr = $instr[6:2] ==? 5'b0100x ;
+         
+         $is_u_instr = $instr[6:2] ==? 5'b0x101 ;
+         
+         $is_b_instr = $instr[6:2] ==? 5'b11000 ;
+         
+         $is_j_instr = $instr[6:2] ==? 5'b11011 ;
+                                     
+      // YOUR CODE HERE
+      // ...
+
+      // Note: Because of the magic we are using for visualisation, if visualisation is enabled below,
+      //       be sure to avoid having unassigned signals (which you might be using for random inputs)
+      //       other than those specifically expected in the labs. You'll get strange errors for these.
+
+   
+   // Assert these to end simulation (before Makerchip cycle limit).
+   *passed = *cyc_cnt > 40;
+   *failed = 1'b0;
+   
+   // Macro instantiations for:
+   //  o instruction memory
+   //  o register file
+   //  o data memory
+   //  o CPU visualization
+   |cpu
+      m4+imem(@1)    // Args: (read stage)
+      //m4+rf(@1, @1)  // Args: (read stage, write stage) - if equal, no register bypass is required
+      //m4+dmem(@4)    // Args: (read/write stage)
+      //m4+myth_fpga(@0)  // Uncomment to run on fpga
+
+   m4+cpu_viz(@4)    // For visualisation, argument should be at least equal to the last stage of CPU logic. @4 would work for all labs.
+\SV
+   endmodule
+```
+![Screenshot from 2023-08-22 13-18-54](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/297451c1-d1c0-42fb-b5dc-d8f8ea256393)
+
+![Screenshot from 2023-08-22 12-45-08](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/6e032dda-c9d4-492e-8a78-bf33bb672c27)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
 </details>
 
 
