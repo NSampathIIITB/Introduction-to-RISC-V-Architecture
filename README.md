@@ -1192,7 +1192,7 @@ After an instruction is fetched, the PC needs to be updated to point to the next
 
 ![Screenshot from 2023-08-22 11-56-31](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/53839638-0fff-46c5-a4a3-5721f74c1322)
 
-
+```
 |cpu
       @0
          $reset = *reset;
@@ -1222,7 +1222,7 @@ After an instruction is fetched, the PC needs to be updated to point to the next
    m4+cpu_viz(@4)    // For visualisation, argument should be at least equal to the last stage of CPU logic. @4 would work for all labs.
 \SV
    endmodule
-
+```
 
 ![Screenshot from 2023-08-22 12-01-27](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/06a306b9-2d78-4727-bcda-c909e930f396)
 
