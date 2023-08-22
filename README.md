@@ -1679,7 +1679,6 @@ $taken_branch = $is_beq ? ($src1_value == $src2_value):
 
 
 
-
 ## Acknowledgement
 - Kunal Ghosh, VSD Corp. Pvt. Ltd.
 - Skywater Foundry
