@@ -1669,6 +1669,58 @@ $taken_branch = $is_beq ? ($src1_value == $src2_value):
 
 <details>
 	<summary> Pipelining the CPU </summary>
+<br>
+Pipelining in computer architecture is a technique used to increase the throughput of instruction execution by breaking down the instruction processing into multiple stages. The RISC-V architecture, which is a popular open-source Instruction Set Architecture (ISA), can also benefit from pipelining to improve its performance.
+
+Here's a basic overview of how pipelining works in a RISC-V CPU:
+
+1. **Fetch Stage**: In this stage, the CPU fetches the instruction from memory using the program counter (PC) as the address. The fetched instruction is then passed to the next stage.
+
+2. **Decode Stage**: Here, the fetched instruction is decoded to determine its operation and operands. This stage also involves reading registers if the instruction requires any data from registers.
+
+3. **Execute Stage**: In this stage, the instruction's operation is performed. For example, if it's an arithmetic instruction, the actual computation takes place here.
+
+4. **Memory Stage**: If the instruction involves memory operations (load or store), they are performed in this stage. Data memory access occurs here.
+
+5. **Write-back Stage**: The result of the instruction is written back to the destination register in this stage.
+
+Pipelining allows multiple instructions to be processed simultaneously at different stages of execution. While one instruction is being executed, the subsequent instruction can be decoded, and the one after that can be fetched, and so on. This improves the overall throughput of the CPU.
+
+However, pipelining introduces some challenges:
+
+1. **Data Hazards**: These occur when an instruction depends on the result of a previous instruction that hasn't completed yet. For example, if one instruction writes to a register and the next instruction reads from it, the second instruction has to wait for the first one to complete.
+
+2. **Control Hazards**: These happen when the flow of execution changes due to branches or jumps. If the pipeline has already fetched subsequent instructions based on a branch that takes a different path, those fetched instructions may need to be discarded, leading to inefficiencies.
+
+3. **Structural Hazards**: These occur when multiple instructions require the same hardware resource at the same time. For instance, if two instructions want to access memory simultaneously, there might be a conflict.
+
+4. **Pipeline Stall**: When a hazard is detected, the pipeline might need to stall (pause) until the hazard is resolved. Stalls reduce the performance gain from pipelining.
+
+Advanced techniques like forwarding, branch prediction, and out-of-order execution are often used to mitigate these challenges and make the pipeline more efficient.
+
+Designing a pipelined RISC-V CPU requires careful consideration of these challenges and the appropriate solutions. It's a complex task that involves optimizing the hardware and control logic to ensure that the pipeline operates smoothly and efficiently.
+
+## Lab-1: Create 3-Cycle Valid Signal 
+
+![Screenshot from 2023-08-24 11-56-47](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/6239dbc9-6ee4-4136-95a9-725ed0d5d188)
+
+```
+// 3-cycle valid signal
+         $start = $reset ? 1'b0 : ($start_int && !>>1$start_int);
+         $start_int = $reset ? 1'b0 : 1'b1;
+         $valid = $reset ? 1'b0 : ($start ? 1'b1 : >>3$valid);
+```
+![Screenshot from 2023-08-24 12-36-52](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/de31697c-933d-4ff4-99e1-eb757bf84919)
+
+![Screenshot from 2023-08-24 12-41-13](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/3e7d0a13-c4f6-45da-8b0f-d6b079142299)
+
+## 
+
+
+
+
+
+
 </details>
 <details>
 	<summary> Solutions to Pipeline Hazards </summary>
