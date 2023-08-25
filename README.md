@@ -1723,7 +1723,7 @@ Designing a pipelined RISC-V CPU requires careful consideration of these challen
 
 
 
-
+```
 
 </details>
 <details>
