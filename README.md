@@ -1714,7 +1714,11 @@ Designing a pipelined RISC-V CPU requires careful consideration of these challen
 
 ![Screenshot from 2023-08-24 12-41-13](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/3e7d0a13-c4f6-45da-8b0f-d6b079142299)
 
-## 
+## Lab-2: Code 3-Cycle RISC-V To Take Care Of Invalid Cycles
+
+![Screenshot from 2023-08-25 14-45-24](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/33ea74ef-9de9-4f70-8624-41793d1f609c)
+
+```
 
 
 
