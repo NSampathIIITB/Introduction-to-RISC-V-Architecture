@@ -1776,30 +1776,107 @@ $src2_value[31:0] = (>>1$rf_wr_index == $rf_rd_index2) && >>1$rf_wr_en ? >>1$res
 
 ## Lab-2: Branches To Correct The Branch Target Path 
 
+![Screenshot from 2023-08-26 14-30-09](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/a1316d43-4e19-45ec-983a-c3a22736f8ed)
 
 
+```
+step-1
 
+$valid = !(>>1$valid_taken_br || >>2$valid_taken_br);
 
+step-2
 
+$pc[31:0] = >>1$reset ? 32'b0 :
+               >>3$valid_taken_br ? >>3$br_tgt_pc : $inc_pc;
 
-
-
+```
 
 ## Lab-3: To Complete Instruction Decode Except Fence, Ecall, Ebreak 
 
+![Screenshot from 2023-08-26 14-42-19](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/6d45aec1-b1b7-4ad7-94cb-de38c3dd0fd2)
 
-
-
-
-
+```
+//branch instructions
+         $is_beq = $dec_bits ==? 11'bx_000_1100011;
+         $is_bne = $dec_bits ==? 11'bx_001_1100011;          
+         $is_blt = $dec_bits ==? 11'bx_100_1100011;
+         $is_bge = $dec_bits ==? 11'bx_101_1100011;
+         $is_bltu = $dec_bits ==? 11'bx_110_1100011;
+         $is_bgeu = $dec_bits ==? 11'bx_111_1100011;
+         //arithmetic instructions
+         $is_addi = $dec_bits ==? 11'bx_000_0010011;
+         $is_add = $dec_bits ==? 11'b0_000_0110011;
+         $is_lui   = $dec_bits ==? 11'bx_xxx_0110111;
+         $is_slti  = $dec_bits ==? 11'bx_010_0010011;
+         $is_sltiu = $dec_bits ==? 11'bx_011_0010011;
+         $is_xori  = $dec_bits ==? 11'bx_100_0010011;
+         $is_ori   = $dec_bits ==? 11'bx_110_0010011;
+         $is_andi  = $dec_bits ==? 11'bx_111_0010011;
+         $is_slli  = $dec_bits ==? 11'b0_001_0010011;
+         $is_srli  = $dec_bits ==? 11'b0_101_0010011;
+         $is_srai  = $dec_bits ==? 11'b1_101_0010011;
+         $is_sub   = $dec_bits ==? 11'b1_000_0110011;
+         $is_sll   = $dec_bits ==? 11'b0_001_0110011;
+         $is_slt   = $dec_bits ==? 11'b0_010_0110011;
+         $is_sltu  = $dec_bits ==? 11'b0_011_0110011;
+         $is_xor   = $dec_bits ==? 11'b0_100_0110011;
+         $is_srl   = $dec_bits ==? 11'b0_101_0110011;
+         $is_sra   = $dec_bits ==? 11'b1_101_0110011;
+         $is_or    = $dec_bits ==? 11'b0_110_0110011;
+         $is_and   = $dec_bits ==? 11'b0_111_0110011;
+         //load instructions
+         $is_load  = $dec_bits ==? 11'bx_xxx_0000011;
+        //Store instructions
+         $is_sb    = $dec_bits ==? 11'bx_000_0100011;
+         $is_sh    = $dec_bits ==? 11'bx_001_0100011;
+         $is_sw    = $dec_bits ==? 11'bx_010_0100011;
+         //jump instructions
+         $is_auipc = $dec_bits ==? 11'bx_xxx_0010111;
+         $is_jal   = $dec_bits ==? 11'bx_xxx_1101111;
+         $is_jalr  = $dec_bits ==? 11'bx_000_1100111;
+         
+         $is_jump = $is_jal || $is_jalr;
+```
 
 
 ## Lab_4: To Code Complete ALU 
 
+![Screenshot from 2023-08-26 14-50-12](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/791b2f54-4ab4-4c43-88c4-c4a5b10dd501)
+
+```
+//ALU
+         $result[31:0] = $is_addi  ? $src1_value +  $imm :
+                         $is_add   ? $src1_value +  $src2_value :
+                         $is_andi  ? $src1_value &  $imm :
+                         $is_ori   ? $src1_value |  $imm :
+                         $is_xori  ? $src1_value ^  $imm :
+                         $is_slli  ? $src1_value << $imm[5:0]:
+                         $is_srli  ? $src1_value >> $imm[5:0]:
+                         $is_and   ? $src1_value &  $src2_value:
+                         $is_or    ? $src1_value |  $src2_value:
+                         $is_xor   ? $src1_value ^  $src2_value:
+                         $is_sub   ? $src1_value -  $src2_value:
+                         $is_sll   ? $src1_value << $src2_value:
+                         $is_srl   ? $src1_value >> $src2_value:
+                         $is_sltu  ? $sltu_rslt[31:0]:
+                         $is_sltiu ? $sltiu_rslt[31:0]:
+                         $is_lui   ? {$imm[31:12], 12'b0}:
+                         $is_auipc ? $pc + $imm:
+                         $is_jal   ? $pc + 4:
+                         $is_jalr  ? $pc + 4:
+                         $is_srai  ? ({ {32{$src1_value[31]}} , $src1_value} >> $imm[4:0]) :
+                         $is_slt   ? (($src1_value[31] == $src2_value[31]) ? $sltu_rslt : {31'b0, $src1_value[31]}):
+                         $is_slti  ? (($src1_value[31] == $imm[31]) ? $sltiu_rslt : {31'b0, $src1_value[31]}) :
+                         $is_sra   ? ({ {32{$src1_value[31]}}, $src1_value} >> $src2_value[4:0]) :
+                         $is_load  ? $src1_value +  $imm :
+                         $is_s_instr ? $src1_value + $imm :
+                                    32'bx;
+         
+         $sltu_rslt[31:0]  = $src1_value <  $src2_value;
+         $sltiu_rslt[31:0] = $src1_value <  $imm;
 
 
-
-
+```
 
 	
 </details>
@@ -1807,30 +1884,323 @@ $src2_value[31:0] = (>>1$rf_wr_index == $rf_rd_index2) && >>1$rf_wr_en ? >>1$res
 
 <details>
 <summary> Load/Store Instructions and Completing RISC-V CPU </summary>
+<br>
+	
+**Introduction To Load and Store Instructions**
+<br>
+In the RISC-V instruction set architecture, which is a modern and widely used architecture, load and store instructions play a key role in data transfer between registers and memory. RISC-V has a simple and elegant design with different instruction formats for various types of operations, including load and store instructions.
 
-## Lab To Load Data From Memory To Register File 
+Here are some examples of load and store instructions in RISC-V assembly language:
 
-## Lab To Instantiate Data Memory To The CPU 
+1. **Load Instructions:**
+   - `LW rd, imm(rs1)`: Load Word. Loads a 32-bit value from memory at the address `(rs1 + imm)` into register `rd`.
+   - `LH rd, imm(rs1)`: Load Halfword. Loads a 16-bit value from memory at the address `(rs1 + imm)` into the lower 16 bits of register `rd`.
+   - `LB rd, imm(rs1)`: Load Byte. Loads an 8-bit value from memory at the address `(rs1 + imm)` into the lower 8 bits of register `rd`.
+   - `LBU rd, imm(rs1)`: Load Byte Unsigned. Similar to `LB`, but zero-extends the loaded value to 32 bits.
 
-## Lab To Add Stores And Loads To The Test Program 
+2. **Store Instructions:**
+   - `SW rs2, imm(rs1)`: Store Word. Stores a 32-bit value from register `rs2` into memory at the address `(rs1 + imm)`.
+   - `SH rs2, imm(rs1)`: Store Halfword. Stores the lower 16 bits of the value in register `rs2` into memory at the address `(rs1 + imm)`.
+   - `SB rs2, imm(rs1)`: Store Byte. Stores the lower 8 bits of the value in register `rs2` into memory at the address `(rs1 + imm)`.
 
-## Lab To Add Control Logic For Jump Instructions  
+In these instructions:
+- `rd` is the destination register for load instructions.
+- `rs1` is the source register for both load and store instructions.
+- `rs2` is the source register for store instructions.
+- `imm` is an immediate value that specifies an offset from the base address in the memory operation.
 
-## Complete RISC_V CPU
+For example, consider the following RISC-V assembly code snippet:
+
+```assembly
+LW   x10, 4(x5)   # Load a word from memory at address (x5 + 4) into x10
+LB   x11, -2(x6)  # Load a byte from memory at address (x6 - 2) into the lower 8 bits of x11
+SW   x12, 8(x7)   # Store the value in x12 into memory at address (x7 + 8)
+```
+
+Remember that RISC-V is a modular architecture, and there are different extensions (such as RV32I, RV64I, etc.) that define the available instructions. The examples above are based on the RV32I base instruction set. Extensions like RV32M, RV64F, RV64D, etc., provide additional instructions for integer multiplication, floating-point operations, and more.
 
 
+![Screenshot from 2023-08-26 14-58-52](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/54ca6359-ea99-412b-99ee-1f695885bf00)
 
 
+## Complete RISC_V CPU after implementing load and store instructions
+
+```
+\m4_TLV_version 1d: tl-x.org
+\SV
+   // This code can be found in: https://github.com/stevehoover/RISC-V_MYTH_Workshop
+   
+   m4_include_lib(['https://raw.githubusercontent.com/BalaDhinesh/RISC-V_MYTH_Workshop/master/tlv_lib/risc-v_shell_lib.tlv'])
+\SV
+   m4_makerchip_module   // (Expanded in Nav-TLV pane.)
+\TLV
+
+   // /====================\
+   // | Sum 1 to 9 Program |
+   // \====================/
+   //
+   // Program for MYTH Workshop to test RV32I
+   // Add 1,2,3,...,9 (in that order).
+   //
+   // Regs:
+   //  r10 (a0): In: 0, Out: final sum
+   //  r12 (a2): 10
+   //  r13 (a3): 1..10
+   //  r14 (a4): Sum
+   // 
+   // External to function:
+   m4_asm(ADD, r10, r0, r0)             // Initialize r10 (a0) to 0.
+   // Function:
+   m4_asm(ADD, r14, r10, r0)            // Initialize sum register a4 with 0x0
+   m4_asm(ADDI, r12, r10, 1010)         // Store count of 10 in register a2.
+   m4_asm(ADD, r13, r10, r0)            // Initialize intermediate sum register a3 with 0
+   // Loop:
+   m4_asm(ADD, r14, r13, r14)           // Incremental addition
+   m4_asm(ADDI, r13, r13, 1)            // Increment intermediate register by 1
+   m4_asm(BLT, r13, r12, 1111111111000) // If a3 is less than a2, branch to label named <loop>
+   m4_asm(ADD, r10, r14, r0)            // Store final result to register a0 so that it can be read by main program
+   m4_asm(SW, r0, r10, 100)
+   m4_asm(LW, r15, r0, 100)
+   
+   // Optional:
+   // m4_asm(JAL, r7, 00000000000000000000) // Done. Jump to itself (infinite loop). (Up to 20-bit signed immediate plus implicit 0 bit (unlike JALR) provides byte address; last immediate bit should also be 0)
+   m4_define_hier(['M4_IMEM'], M4_NUM_INSTRS)
+
+   |cpu
+      @0
+         $reset = *reset;
+         /*$pc[31:0] = >>1$reset ? 32'd0 : (>>1$taken_branch ? >>1$br_tgt_pc :  (>>1$pc+32'd4));
+         $pc[31:0] = >>1$reset ? 32'b0 :
+                   >>3$valid_taken_br ? >>3$br_tgt_pc : $inc_pc;*/
+         // Program counter update
+         $pc[31:0] = (>>1$reset) ? 32'b0 : 
+                     (>>3$taken_br) ? >>3$br_tgt_pc : 
+                     (>>3$valid_load) ? >>3$inc_pc : 
+                     (>>3$valid_jump && >>3$is_jal) ? >>3$br_tgt_pc :
+                     (>>3$valid_jump && >>3$is_jalr) ? >>3$jalr_tgt_pc : >>1$inc_pc;
+         
+         // Instruction memory data
+         $imem_rd_en = !$reset;
+         $imem_rd_addr[31:0] = $pc[M4_IMEM_INDEX_CNT+1:2];
+         
+      @1
+         $inc_pc[31:0] = $pc + 32'd4;
+         $instr[31:0] = $imem_rd_data[31:0];
+
+         //Decode
+         $is_i_instr = $instr[6:2] ==? 5'b0000x ||
+                       $instr[6:2] ==? 5'b001x0 ||
+                       $instr[6:2] ==? 5'b11001;         // short immediates and loads
+         $is_r_instr = $instr[6:2] ==? 5'b01011 ||
+                       $instr[6:2] ==? 5'b011x0 ||
+                       $instr[6:2] ==? 5'b10100;         // register-register
+         $is_s_instr = $instr[6:2] ==? 5'b0100x;         // Store
+         $is_b_instr = $instr[6:2] ==? 5'b11000;         // Branch
+         $is_j_instr = $instr[6:2] ==? 5'b11011;         // Jump
+         $is_u_instr = $instr[6:2] ==? 5'b0x101;         // Long immediates
+         
+         //Immediate instructions
+         $imm[31:0] = $is_i_instr ? { {21{$instr[31]}}, $instr[30:20] } :
+                      $is_s_instr ? { {21{$instr[31]}}, $instr[30:25], $instr[11:7] } :
+                      $is_b_instr ? { {20{$instr[31]}}, $instr[7], $instr[30:25], $instr[11:8], 1'b0 } :
+                      $is_u_instr ? { $instr[31:12], 12'b0 }:
+                      $is_j_instr ? { {12{$instr[31]}}, $instr[19:12], $instr[20], $instr[30:21], 1'b0 }:
+                      32'b0; 
+         /*extracting other instruction fields
+         $rs2 = $instr[24:20];
+         $rs1 = $instr[19:15];
+         $rd = $instr[11:7];
+         $opcode = $instr[6:0];
+         $funct3 = $instr[12:14];
+         $funct7 = $instr[25:30];*/
+           
+         $rs2_valid = $is_r_instr || $is_s_instr || $is_b_instr;
+         ?$rs2_valid
+            $rs2[4:0] = $instr[24:20];
+         $rs1_valid = $is_r_instr || $is_i_instr || $is_s_instr || $is_b_instr;
+         ?$rs1_valid
+            $rs1[4:0] = $instr[19:15];
+         $rd_valid = $is_r_instr || $is_i_instr || $is_u_instr || $is_j_instr;
+         ?$rd_valid
+            $rd[4:0] = $instr[11:7];
+         $funct3_valid = $is_r_instr || $is_i_instr || $is_s_instr || $is_b_instr;
+         ?$funct3_valid
+            $funct3[2:0] = $instr[14:12];
+         $funct7_valid = $is_r_instr;
+         ?$funct7_valid
+            $funct7[6:0] = $instr[31:25];
+         $opcode[6:0] = $instr[6:0];
+         $dec_bits[10:0] = {$funct7[5],$funct3,$opcode};
+
+         //branch instructions
+         $is_beq = $dec_bits ==? 11'bx_000_1100011;
+         $is_bne = $dec_bits ==? 11'bx_001_1100011;
+         $is_blt = $dec_bits ==? 11'bx_100_1100011;
+         $is_bge = $dec_bits ==? 11'bx_101_1100011;
+         $is_bltu = $dec_bits ==? 11'bx_110_1100011;
+         $is_bgeu = $dec_bits ==? 11'bx_111_1100011;
+
+         //arithmetic instructions
+         $is_addi = $dec_bits ==? 11'bx_000_0010011;
+         $is_add = $dec_bits ==? 11'b0_000_0110011;
+         $is_sltiu = $dec_bits ==? 11'bx_011_0010011;
+         $is_xori = $dec_bits ==? 11'bx_100_0010011;
+         $is_ori = $dec_bits ==? 11'bx_110_0010011;
+         $is_andi = $dec_bits ==? 11'bx_111_0010011;
+         $is_slli = $dec_bits ==? 11'b0_001_0010011;
+         $is_srli = $dec_bits ==? 11'b0_101_0010011;
+         $is_srai = $dec_bits ==? 11'b1_101_0010011;
+         $is_sub = $dec_bits ==? 11'b1_000_0110011;
+         $is_sll = $dec_bits ==? 11'b0_001_0110011;
+         $is_slt = $dec_bits ==? 11'b0_010_0110011;
+         $is_sltu = $dec_bits ==? 11'b0_011_0110011;
+         $is_xor = $dec_bits ==? 11'b0_100_0110011;
+         $is_srl = $dec_bits ==? 11'b0_101_0110011;
+         $is_sra = $dec_bits ==? 11'b1_101_0110011;
+         $is_or = $dec_bits ==? 11'b0_110_0110011;
+         $is_and = $dec_bits ==? 11'b0_111_0110011;
+         $is_slti = $dec_bits ==? 11'bx_010_0010011;
+
+         //load instructions
+         $is_load = $dec_bits ==? 11'bx_xxx_0000011;
+
+         //Store instructions
+         $is_sw = $dec_bits ==? 11'bx_010_0100011;
+         $is_sh = $dec_bits ==? 11'bx_001_0100011;
+         $is_sb = $dec_bits ==? 11'bx_000_0100011;
+
+         //jump instructions
+         $is_jalr = $dec_bits ==? 11'bx_000_1100111;
+         $is_jal = $dec_bits ==? 11'bx_xxx_1101111;
+         $is_auipc = $dec_bits ==? 11'bx_xxx_0010111;
+         $is_lui = $dec_bits ==? 11'bx_xxx_0110111;
+         
+         $is_jump = $is_jal || $is_jalr;
+
+     @2
+         /*Register file read
+         $rf_rd_en1 = $rs1_valid && >>2$result ;
+         $rf_rd_index1[4:0] = $rs1 ;
+         $rf_rd_en2 = $rs2_valid && >>2$result;
+         $rf_rd_index2[4:0] = $rs2 ;*/
+   
+        /*$src1_value[31:0] = >>1$rf_rd_data1;
+         $src2_value[31:0] = >>1$rf_rd_data2;*/
+
+         // Data forwarding
+         $src1_value[31:0] = (>>1$rd == $rs1) && >>1$rf_wr_en ? >>1$result : $rf_rd_data1;  
+         $src2_value[31:0] = (>>1$rd == $rs2) && >>1$rf_wr_en ? >>1$result : $rf_rd_data2;
+
+         // Branch and jump
+         $br_tgt_pc[31:0] = $pc + $imm;
+         $jalr_tgt_pc[31:0] = $src1_value + $imm;
+         
+         
+      @3
+         // Flushing next two instructions if branch or load or jump occurs
+         $valid = !(>>1$valid_taken_br || >>2$valid_taken_br || >>1$valid_load || >>2$valid_load || >>1$valid_jump || >>2$valid_jump);
+
+         //ALU operations
+         $sltu_result = $src1_value < $src2_value ;
+         $sltiu_result = $src1_value < $imm ;
+         
+         $result[31:0] = $is_addi ? $src1_value + $imm :
+                         $is_add ? $src1_value + $src2_value : 
+                         $is_or ? $src1_value | $src2_value : 
+                         $is_ori ? $src1_value | $imm :
+                         $is_xor ? $src1_value ^ $src2_value :
+                         $is_xori ? $src1_value ^ $imm :
+                         $is_and ? $src1_value & $src2_value :
+                         $is_andi ? $src1_value & $imm :
+                         $is_sub ? $src1_value - $src2_value :
+                         $is_slti ? (($src1_value[31] == $imm[31]) ? $sltiu_result : {31'b0,$src1_value[31]}) :
+                         $is_sltiu ? $sltiu_result :
+                         $is_slli ? $src1_value << $imm[5:0] :
+                         $is_srli ? $src1_value >> $imm[5:0] :
+                         $is_srai ? ({{32{$src1_value[31]}}, $src1_value} >> $imm[4:0]) :
+                         $is_sll ? $src1_value << $src2_value[4:0] :
+                         $is_slt ? (($src1_value[31] == $src2_value[31]) ? $sltu_result : {31'b0,$src1_value[31]}) :
+                         $is_sltu ? $sltu_result :
+                         $is_srl ? $src1_value >> $src2_value[5:0] :
+                         $is_sra ? ({{32{$src1_value[31]}}, $src1_value} >> $src2_value[4:0]) :
+                         $is_lui ? ({$imm[31:12], 12'b0}) :
+                         $is_auipc ? $pc + $imm :
+                         $is_jal ? $pc + 4 :
+                         $is_jalr ? $pc + 4 : 
+                         ($is_load || $is_s_instr) ? $src1_value + $imm : 32'bx;
+
+         /*reg file write
+         $rf_wr_en = $valid && $rd_valid && $rd != 5'b0;
+         $rf_wr_index[4:0] = $rd;
+         $rf_wr_data[31:0] = $result;*/
+
+         // Register Write - checks stalling also
+         $rf_wr_en = ($rd_valid && $valid && $rd != 5'b0) || >>2$valid_load;
+         ?$rf_wr_en
+            $rf_wr_index[4:0] = !$valid ? >>2$rd[4:0] : $rd[4:0];
+      
+         $rf_wr_data[31:0] = !$valid ? >>2$ld_data[31:0] : $result[31:0];
+         
+         //Branch instruction 1
+         
+         $taken_branch = $is_beq ? ($src1_value == $src2_value):
+                         $is_bne ? ($src1_value != $src2_value):
+                         $is_blt ? (($src1_value < $src2_value) ^ ($src1_value[31] != $src2_value[31])):
+                         $is_bge ? (($src1_value >= $src2_value) ^ ($src1_value[31] != $src2_value[31])):
+                         $is_bltu ? ($src1_value < $src2_value):
+                         $is_bgeu ? ($src1_value >= $src2_value):
+                                    1'b0;
+         `BOGUS_USE($taken_branch)
+
+         $valid_taken_br = $valid & $taken_br;
+         
+         
+         $valid_load = $is_load && $valid;
+         $valid_jump = $valid && $is_jump;
+
+     @4
+
+         // Data memory
+         $dmem_rd_en = $valid_load;
+         $dmem_wr_en = $valid && $is_s_instr;
+         $dmem_addr[3:0] = $result[5:2];
+         $dmem_wr_data[31:0] = $src2_value[31:0];
+         
+      @5   
+         $ld_data[31:0] = $dmem_rd_data[31:0];
 
 
+     /*?$imem_rd_en
+         @1
+            $imem_rd_data[31:0] = /imem[$imem_rd_addr]$instr;*/ 
+         
+         `BOGUS_USE($is_beq $is_bne $is_blt $is_bge $is_bltu $is_bgeu $is_sb $is_sh $is_sw)
+   // Assert these to end simulation (before Makerchip cycle limit).
+   *passed = !clk || *cyc_cnt > 2100;
+   *failed = !clk || 1'b0;
+   
+   // Macro instantiations for:
+   //  o instruction memory
+   //  o register file
+   //  o data memory
+   //  o CPU visualization
+   |cpu
+      m4+imem(@1)    // Args: (read stage)
+      m4+rf(@2, @3)  // Args: (read stage, write stage) - if equal, no register bypass is required
+      m4+dmem(@4)    // Args: (read/write stage)
+   
+   m4+cpu_viz(@4)    // For visualisation, argument should be at least equal to the last stage of CPU logic. @4 would work for all labs.
+\SV
+   endmodule
 
+```
+![Screenshot from 2023-08-26 16-25-44](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/9fa273b0-a8f3-428b-9659-745a6b162958)
 
+![Screenshot from 2023-08-26 15-44-41](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/0dcfcfa2-8623-444c-8f17-c4c004233072)
 
+![Screenshot from 2023-08-26 15-39-28](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/f162612e-dcc8-4e67-9707-60cc4509a608)
 
-
-
-
-
+![Screenshot from 2023-08-26 15-44-12](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/0bd4eacc-2a0d-42ec-9247-0dfc74688616)
 
  
 </details>
@@ -1839,11 +2209,14 @@ $src2_value[31:0] = (>>1$rf_wr_index == $rf_rd_index2) && >>1$rf_wr_en ? >>1$res
 
 ## Acknowledgement
 - Kunal Ghosh, VSD Corp. Pvt. Ltd.
-- Skywater Foundry
+- Steve Hoover,Redwood Eda
 - Alwin shaju,Colleague,IIIT B
+- Kanish R,Colleague,IIIT B
 - Emil Jayanth Lal,Colleague,IIIT B
 - Pruthvi Parate,Colleague, IIIT B
 - Bhargav D V,Colleague, IIIT B
+- Bala Dhinesh,Engineer,Testorrent
+
 
 
 ## Reference
@@ -1851,4 +2224,9 @@ $src2_value[31:0] = (>>1$rf_wr_index == $rf_rd_index2) && >>1$rf_wr_en ? >>1$res
 - https://en.wikipedia.org/wiki/Toolchain
 - https://en.wikipedia.org/wiki/GNU_toolchain
 - https://github.com/riscv/riscv-gnu-toolchain
+- https://github.com/shivanishah269
+- https://raw.githubusercontent.com/BalaDhinesh/RISC-V_MYTH_Workshop
+- https://github.com/stevehoover
+- https://github.com/kunalg123/riscv_workshop_collaterals
+  
 
