@@ -1719,18 +1719,120 @@ Designing a pipelined RISC-V CPU requires careful consideration of these challen
 ![Screenshot from 2023-08-25 14-45-24](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/33ea74ef-9de9-4f70-8624-41793d1f609c)
 
 ```
+step-1:
 
+$rf_wr_en = $valid && $rd_valid && $rd != 5'b0;
 
+step-2:
 
+$valid_taken_br = $valid && $taken_branch;
+$pc[31:0] = >>1$reset ? 32'b0 :
+               >>3$valid_taken_br ? >>3$br_tgt_pc : >>3$inc_pc;
+                              
+$inc_pc[31:0] = $pc + 32'd4;
 
 ```
+![Screenshot from 2023-08-26 12-22-13](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/02239c92-d963-4150-a863-bd87eb2946a7)
+
+![Screenshot from 2023-08-26 12-23-17](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/48634c06-1679-419c-8c9a-6563db259964)
+
+## Lab-3: To Modify 3-Cycle RISC-V To Distribute Logic
+
+![Screenshot from 2023-08-26 12-28-58](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/d4923cd2-b17e-4c5d-b869-362330253820)
+
+**After making the required changes**
+
+![Screenshot from 2023-08-26 12-39-40](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/fedb192c-f60e-40ca-9e85-818bf4385232)
+
+![Screenshot from 2023-08-26 12-40-28](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/c94dba0b-7841-4da8-b676-303d976ec1bf)
 
 </details>
 <details>
-	<summary> Solutions to Pipeline Hazards </summary>
+<summary> Solutions to Pipeline Hazards </summary>
+	
+## Lab-1: Register File Bypass To Address Rd-After-Wr Hazard 
+
+![Screenshot from 2023-08-26 13-02-33](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/d7da143a-afa2-432a-b53f-95ebac6ec2a2)
+
+```
+step-1
+
+$rf_rd_en1 = $rs1_valid && >>2$result ;
+$rf_rd_en2 = $rs2_valid && >>2$result ;
+
+step-2
+
+$src1_value[31:0] = (>>1$rf_wr_index == $rf_rd_index1) && >>1$rf_wr_en ? >>1$result :  
+                       $rf_rd_data1;
+   
+$src2_value[31:0] = (>>1$rf_wr_index == $rf_rd_index2) && >>1$rf_wr_en ? >>1$result :
+                       $rf_rd_data2;
+
+```
+![Screenshot from 2023-08-26 13-09-46](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/d285f07e-0f13-4af9-b9a0-2d36cffb8d1e)
+
+![Screenshot from 2023-08-26 13-10-06](https://github.com/NSampathIIITB/Introduction-to-RISC-V-Architecture/assets/141038460/36c5787f-2bbc-45d7-9f94-6aa3299ca3c2)
+
+
+## Lab-2: Branches To Correct The Branch Target Path 
+
+
+
+
+
+
+
+
+
+
+## Lab-3: To Complete Instruction Decode Except Fence, Ecall, Ebreak 
+
+
+
+
+
+
+
+
+## Lab_4: To Code Complete ALU 
+
+
+
+
+
+
+	
 </details>
+
+
 <details>
-	<summary> Load/Store Instructions and Completing RISC-V CPU </summary>
+<summary> Load/Store Instructions and Completing RISC-V CPU </summary>
+
+## Lab To Load Data From Memory To Register File 
+
+## Lab To Instantiate Data Memory To The CPU 
+
+## Lab To Add Stores And Loads To The Test Program 
+
+## Lab To Add Control Logic For Jump Instructions  
+
+## Complete RISC_V CPU
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
 </details>
 
 
